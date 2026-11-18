@@ -1,7 +1,7 @@
 /* SJA offline cache.
    Internet ho to hamesha naya version (network pehle) — taake purani aur nayi files mix na hon.
    Internet na ho (ya 4 second mein jawab na aaye) to cache se chalao. */
-const CACHE = "sja-v11";
+const CACHE = "sja-v12";
 const CORE = ["./", "index.html", "css/app.css", "css/fonts.css", "js/app.js", "js/store.js", "js/firebase-config.js",
   "img/sja-logo.svg", "manifest.webmanifest",
   "js/vendor/firebase-app-compat.js", "js/vendor/firebase-auth-compat.js", "js/vendor/firebase-firestore-compat.js"];

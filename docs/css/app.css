@@ -192,3 +192,7 @@ main{padding:16px; max-width:1200px; margin:0 auto; min-width:0}
 .watermark img{width:min(70vw, 520px); height:auto; opacity:.06; filter:grayscale(.2)}
 :root[data-theme="dark"] .watermark img{opacity:.07}
 @media print{ .watermark{display:none} }
+
+.pager{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:12px}
+.pager .btn{min-width:38px; justify-content:center}
+.pager-info{margin-inline-start:auto; font-size:13px}

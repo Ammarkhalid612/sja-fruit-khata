@@ -222,9 +222,66 @@ async function changePassword(){
 
 let started = false;
 async function start(){
-  if(!started){ wire(); started = true; }
+  const first = !started;
+  if(first){ wire(); started = true; }
   await loadAll();
   setView(S.view);
+  if(first) startLive();
+}
+
+/* ============ live update: kahin bhi tabdeeli ho, khuli screen khud taaza ho ============ */
+let liveOn = false, renderTimer = null;
+function startLive(){
+  if(liveOn) return; liveOn = true;
+  const st = S.store;
+  if(st.watch){
+    const sorters = { parties:(a, b) => a.name.localeCompare(b.name, "ur"), items:(a, b) => n2(a.order) - n2(b.order) };
+    ["parties", "items", "bills", "payments"].forEach(col => st.watch(col, rows => {
+      if(col === "items" && !rows.length) return;          // seed hone se pehle khaali na kar do
+      if(sorters[col]) rows.sort(sorters[col]);
+      S[col] = rows; fillLists(); queueRender();
+    }));
+    st.watchDoc("settings", "shop", doc => {
+      if(!doc) return; delete doc.id;
+      S.settings = Object.assign({}, DEFAULT_SETTINGS, doc); $("brandName").textContent = S.settings.name; queueRender();
+    });
+  } else {
+    // local: isi computer ke doosre tab mein tabdeeli
+    window.addEventListener("storage", e => { if(e.key === "sja.db") loadAll().then(queueRender); });
+  }
+  // tab / app par wapas aaye to screen taaza
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) queueRender(); });
+  window.addEventListener("focus", queueRender);
+}
+function queueRender(){ clearTimeout(renderTimer); renderTimer = setTimeout(refreshView, 150); }
+function refreshView(){
+  if($("app").classList.contains("hidden")) return;
+  const v = S.view;
+  if(v === "dash") renderDash();
+  else if(v === "bill"){ if($("bParty").value) balHint($("bPartyBal"), $("bParty").value); }   // bharta hua form na chhero
+  else if(v === "pay"){ renderPay(); if($("pParty").value) balHint($("pPartyBal"), $("pParty").value); }
+  else if(v === "ledger"){ if(partyByName($("lParty").value)) showLedger(); }
+  else if(v === "bills") renderBillList();
+  else if(v === "parties") renderParties();
+  else if(v === "items") renderItems();
+  else if(v === "reports") renderReport();
+}
+
+/* ----- page number (10 ek page par) ----- */
+const PAGE = 10;
+function pageSlice(list, key){
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  S[key] = Math.min(Math.max(1, S[key] || 1), pages);
+  return { rows: list.slice((S[key] - 1) * PAGE, S[key] * PAGE), page:S[key], pages };
+}
+function pagerHtml(pg, key, total){
+  if(pg.pages <= 1) return "";
+  const btn = (n, label, cur, dis) => `<button class="btn sm${cur ? " primary" : ""}" type="button" data-page-key="${key}" data-page="${n}"${dis ? " disabled" : ""}>${label}</button>`;
+  // 1 … 4 5 6 … 12
+  const nums = []; for(let n = 1; n <= pg.pages; n++) if(n === 1 || n === pg.pages || Math.abs(n - pg.page) <= 1) nums.push(n);
+  const parts = []; nums.forEach((n, i) => { if(i && n - nums[i - 1] > 1) parts.push('<span class="muted">…</span>'); parts.push(btn(n, n, n === pg.page)); });
+  return `<div class="pager">${btn(pg.page - 1, "پچھلا", false, pg.page === 1)}${parts.join("")}${btn(pg.page + 1, "اگلا", false, pg.page === pg.pages)}
+    <span class="muted pager-info">${(pg.page - 1) * PAGE + 1}–${Math.min(pg.page * PAGE, total)} از ${total}</span></div>`;
 }
 
 async function loadAll(){
@@ -424,8 +481,14 @@ async function delBill(id){
 /* ----- payment ----- */
 function renderPay(){
   if(!S.editPay){ $("pDate").value = $("pDate").value || today(); }
-  const list = S.payments.filter(p => p.date === today()).sort((a, b) => b.no - a.no);
-  $("payToday").innerHTML = list.length ? payTable(list) : `<p class="muted">آج ابھی کوئی وصولی نہیں۔</p>`;
+  const q = norm($("payQ").value);
+  const all = S.payments.filter(p => !q || (p.partyName || "").includes(q) || String(p.no) === q)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.no - a.no);
+  const t = today(), todaySum = S.payments.filter(p => p.date === t).reduce((s, p) => s + n2(p.amount), 0);
+  if(!all.length){ $("payList").innerHTML = `<p class="muted">${q ? "اس تلاش سے کوئی وصولی نہیں ملی۔" : "ابھی کوئی وصولی نہیں۔"}</p>`; return; }
+  const pg = pageSlice(all, "payPage");
+  $("payList").innerHTML = `<div class="row-head"><div>${all.length} وصولیاں — کل <b class="num">${fmt(all.reduce((s, p) => s + n2(p.amount), 0))}</b></div>
+      <div>آج: <b class="num">${fmt(todaySum)}</b></div></div>` + payTable(pg.rows) + pagerHtml(pg, "payPage", all.length);
 }
 function payTable(list){
   return `<div class="table-wrap"><table class="tbl"><thead><tr><th class="n">رسید</th><th>تاریخ</th><th>پارٹی</th><th>طریقہ</th><th>نوٹ</th><th class="n">رقم</th><th></th></tr></thead><tbody>${
@@ -508,8 +571,10 @@ function renderBillList(){
   const from = $("blFrom").value, to = $("blTo").value, q = norm($("blQ").value);
   const list = S.bills.filter(b => (!from || b.date >= from) && (!to || b.date <= to) && (!q || b.partyName.includes(q) || String(b.no) === q))
     .sort((a, b) => b.no - a.no);
-  $("billList").innerHTML = list.length ? `<div class="row-head"><h2>${list.length} بل</h2><div>کل: <b class="num">${fmt(list.reduce((s, b) => s + n2(b.total), 0))}</b></div></div>` + billTable(list)
-    : `<p class="muted">ان تاریخوں میں کوئی بل نہیں۔</p>`;
+  if(!list.length){ $("billList").innerHTML = `<p class="muted">ان تاریخوں میں کوئی بل نہیں۔</p>`; return; }
+  const pg = pageSlice(list, "billPage");
+  $("billList").innerHTML = `<div class="row-head"><h2>${list.length} بل</h2><div>کل: <b class="num">${fmt(list.reduce((s, b) => s + n2(b.total), 0))}</b></div></div>`
+    + billTable(pg.rows) + pagerHtml(pg, "billPage", list.length);
 }
 
 /* ----- parties ----- */
@@ -751,7 +816,16 @@ function wire(){
   $("lParty").addEventListener("change", showLedger);
 
   // lists
-  ["blFrom", "blTo", "blQ"].forEach(i => $(i).addEventListener("input", renderBillList));
+  ["blFrom", "blTo", "blQ"].forEach(i => $(i).addEventListener("input", () => { S.billPage = 1; renderBillList(); }));
+  $("payQ").addEventListener("input", () => { S.payPage = 1; renderPay(); });
+  // page number buttons
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-page-key]"); if(!b || b.disabled) return;
+    const card = b.closest(".card");   // list dobara banne se pehle pakad lo
+    S[b.dataset.pageKey] = Number(b.dataset.page);
+    if(b.dataset.pageKey === "payPage") renderPay(); else renderBillList();
+    if(card) card.scrollIntoView({ block:"start", behavior:"smooth" });
+  });
   $("ptSave").addEventListener("click", saveParty);
   $("ptQ").addEventListener("input", renderParties);
   $("itSave").addEventListener("click", addItem);
@@ -781,7 +855,7 @@ function wire(){
   });
 }
 
-window.SJA_VERSION = 11;
+window.SJA_VERSION = 12;
 boot();
 // website par khule to offline cache chalu (file:// par service worker nahi chalta, wahan zaroorat bhi nahi)
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){

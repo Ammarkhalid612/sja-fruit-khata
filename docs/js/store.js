@@ -77,6 +77,16 @@ FirebaseStore.prototype.nextNo = function(name, start){
     });
   }).then(function(n){ lsSet(localKey, n + 1); return n; });
 };
+// Live: server / doosre device par tabdeeli hote hi cb(rows) — offline mein cache se
+FirebaseStore.prototype.watch = function(col, cb){
+  return this.db.collection(col).onSnapshot(function(s){
+    cb(s.docs.map(function(d){ return Object.assign({ id:d.id }, d.data()); }));
+  }, function(err){ console.warn("watch " + col, err && err.code); });
+};
+FirebaseStore.prototype.watchDoc = function(col, id, cb){
+  return this.db.collection(col).doc(id).onSnapshot(function(d){ cb(d.exists ? Object.assign({ id:d.id }, d.data()) : null); },
+    function(err){ console.warn("watch " + col + "/" + id, err && err.code); });
+};
 FirebaseStore.prototype.exportAll = function(){
   var self = this, cols = ["parties", "items", "bills", "payments", "settings", "counters"], out = {};
   return Promise.all(cols.map(function(c){
