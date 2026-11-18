@@ -120,6 +120,9 @@ main{padding:16px; max-width:1200px; margin:0 auto}
   .grid2{grid-template-columns:1fr}
   .brand-sub{display:none}
   .brand-name{font-size:15px}
+  .top{flex-wrap:wrap; padding:6px 12px}
+  .top-right{width:100%; justify-content:flex-start}
+  .brand img{width:46px; height:46px}
   main{padding:10px}
 }
 
