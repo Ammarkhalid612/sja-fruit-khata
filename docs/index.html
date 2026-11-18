@@ -7,6 +7,11 @@
 <meta name="theme-color" content="#0F5E2A">
 <link rel="icon" href="img/sja-logo.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+  /* theme pehle hi lagao taake safed jhalak na aaye — default dark */
+  (function(){ var t = "dark"; try { t = localStorage.getItem("sja.theme") || "dark"; } catch(e){}
+    document.documentElement.setAttribute("data-theme", t); })();
+</script>
 <!-- fonts app ke andar hain — internet ke baghair bhi Urdu sahi dikhe -->
 <link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/app.css">
@@ -39,6 +44,7 @@
       </div>
     </div>
     <div class="top-right">
+      <button id="themeBtn" class="theme-btn" type="button" title="لائٹ / ڈارک"></button>
       <span id="syncPill" class="pill"></span>
       <span id="userPill" class="pill muted"></span>
       <button id="logoutBtn" class="btn sm ghost hidden" type="button">لاگ آؤٹ</button>

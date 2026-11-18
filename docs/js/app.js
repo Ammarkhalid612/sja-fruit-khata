@@ -571,7 +571,16 @@ async function backupUp(file){
 }
 
 /* ============================ events ============================ */
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("sja.theme", t); } catch(e){}
+  $("themeBtn").textContent = t === "dark" ? "☀️" : "🌙";
+  $("themeBtn").title = t === "dark" ? "لائٹ تھیم" : "ڈارک تھیم";
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.content = t === "dark" ? "#06200F" : "#0F5E2A";
+}
 function wire(){
+  applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+  $("themeBtn").addEventListener("click", () => applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"));
   $("pvPrint").addEventListener("click", () => window.print());
   $("pvClose").addEventListener("click", () => $("preview").classList.add("hidden"));
   document.addEventListener("keydown", e => { if(e.key === "Escape"){ $("preview").classList.add("hidden"); } });
