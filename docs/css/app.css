@@ -180,3 +180,5 @@ main{padding:16px; max-width:1200px; margin:0 auto}
 
 .theme-btn{font-size:16px; line-height:1; padding:4px 10px; border-radius:99px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.12); color:#fff; cursor:pointer}
 .theme-btn:hover{background:rgba(255,255,255,.22)}
+
+.link-btn{font:inherit; background:none; border:0; color:var(--green-2); cursor:pointer; margin-top:10px; text-decoration:underline; font-size:14px}

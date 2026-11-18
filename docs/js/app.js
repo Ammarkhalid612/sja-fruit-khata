@@ -63,16 +63,31 @@ function boot(){
     const db = firebase.firestore();
     db.enablePersistence({ synchronizeTabs:true }).catch(() => {});
     S.store = new SjaStore.FirebaseStore(db);
-    $("lgUserLbl").textContent = "ای میل"; $("lgEmail").type = "email"; $("lgRemember").parentElement.classList.add("hidden");
+    S.mode = "firebase";
+    $("lgUserLbl").textContent = "ای میل (Gmail)"; $("lgEmail").type = "email"; $("lgEmail").placeholder = "name@gmail.com";
+    $("lgRemember").parentElement.classList.add("hidden"); $("lgForgot").classList.remove("hidden");
     firebase.auth().onAuthStateChanged(u => {
       S.user = u;
-      if(u) enterApp(u.email);
+      if(u){ enterApp(u.email); offerLocalMove(); }
       else showLogin(false);
     });
     $("loginForm").addEventListener("submit", async e => {
       e.preventDefault(); $("lgErr").textContent = "";
-      try { await firebase.auth().signInWithEmailAndPassword($("lgEmail").value.trim(), $("lgPass").value); }
-      catch(err){ $("lgErr").textContent = "ای میل یا پاس ورڈ غلط ہے۔"; }
+      const email = $("lgEmail").value.trim(), pass = $("lgPass").value;
+      if(!email || !pass){ $("lgErr").textContent = "ای میل اور پاس ورڈ دونوں لکھیں۔"; return; }
+      $("lgBtn").disabled = true;
+      try { await firebase.auth().signInWithEmailAndPassword(email, pass); }
+      catch(err){
+        $("lgErr").textContent = err.code === "auth/network-request-failed" ? "پہلی دفعہ لاگ ان کے لیے انٹرنیٹ چاہیے۔"
+          : err.code === "auth/too-many-requests" ? "بہت دفعہ غلط پاس ورڈ — تھوڑی دیر بعد کوشش کریں یا پاس ورڈ بھول گئے دبائیں۔"
+          : "ای میل یا پاس ورڈ غلط ہے۔";
+      } finally { $("lgBtn").disabled = false; }
+    });
+    $("lgForgot").addEventListener("click", async () => {
+      const email = $("lgEmail").value.trim();
+      if(!email){ $("lgErr").textContent = "پہلے اپنی ای میل لکھیں، پھر یہ دبائیں۔"; return; }
+      try { await firebase.auth().sendPasswordResetEmail(email); $("lgErr").textContent = ""; toast("پاس ورڈ بدلنے کا لنک " + email + " پر بھیج دیا — ای میل دیکھیں (Spam بھی)"); }
+      catch(err){ $("lgErr").textContent = "لنک نہیں گیا — ای میل درست لکھیں اور انٹرنیٹ چیک کریں۔"; }
     });
     $("logoutBtn").addEventListener("click", () => firebase.auth().signOut());
   } else {
@@ -154,10 +169,45 @@ function localAuth(){
   });
 }
 
-/* settings: password badlo (local login) */
+/* is device par pehle (bina login wale version mein) bana data ho to online le jao — ek dafa poocho */
+async function offerLocalMove(){
+  let local = null; try { local = JSON.parse(localStorage.getItem("sja.db") || "null"); } catch(e){}
+  if(!local || localStorage.getItem("sja.moved")) return;
+  const count = Object.keys(local.bills || {}).length + Object.keys(local.payments || {}).length + Object.keys(local.parties || {}).length;
+  if(!count) return;
+  await new Promise(r => setTimeout(r, 1200));   // pehle app load ho jaye
+  if(!(await ask(`اس کمپیوٹر / فون پر پہلے کا ڈیٹا موجود ہے (${Object.keys(local.parties || {}).length} پارٹیاں، ${Object.keys(local.bills || {}).length} بل، ${Object.keys(local.payments || {}).length} وصولیاں)۔ اسے آن لائن کھاتے میں لے جائیں؟`, "ہاں، لے جائیں"))){
+    localStorage.setItem("sja.moved", "skip"); return;
+  }
+  let n = 0;
+  for(const col of ["parties", "items", "bills", "payments"]){
+    for(const id of Object.keys(local[col] || {})){ await S.store.set(col, id, local[col][id]); n++; }
+  }
+  // bill / raseed number aage se chalein, takraayen nahi
+  const maxNo = (o) => Math.max(0, ...Object.values(o || {}).map(x => n2(x.no)));
+  for(const [name, m] of [["bill", maxNo(local.bills)], ["pay", maxNo(local.payments)]]){
+    const cur = await S.store.get("counters", name);
+    if(m + 1 > n2(cur && cur.next)) await S.store.set("counters", name, { next: m + 1 });
+  }
+  localStorage.setItem("sja.moved", "done");
+  toast(n + " چیزیں آن لائن کھاتے میں چلی گئیں"); await loadAll(); setView(S.view);
+}
+
+/* settings: password badlo */
 async function changePassword(){
-  const acc = getJSON(localStorage, ACC_KEY); if(!acc){ toast("اکاؤنٹ نہیں ملا۔"); return; }
   const oldp = $("cpOld").value, np = $("cpNew").value, np2 = $("cpNew2").value;
+  if(S.mode === "firebase"){
+    if(np.length < 6){ toast("نیا پاس ورڈ کم از کم 6 حرف / ہندسے کا ہو۔"); return; }
+    if(np !== np2){ toast("دونوں نئے پاس ورڈ ایک جیسے نہیں۔"); return; }
+    try {
+      const u = firebase.auth().currentUser;
+      await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, oldp));
+      await u.updatePassword(np);
+      ["cpOld", "cpNew", "cpNew2"].forEach(i => $(i).value = ""); toast("پاس ورڈ بدل گیا");
+    } catch(err){ toast(err.code === "auth/wrong-password" || err.code === "auth/invalid-credential" ? "پرانا پاس ورڈ غلط ہے۔" : "پاس ورڈ نہیں بدلا — انٹرنیٹ چیک کریں۔"); }
+    return;
+  }
+  const acc = getJSON(localStorage, ACC_KEY); if(!acc){ toast("اکاؤنٹ نہیں ملا۔"); return; }
   if(await hashPass(acc.user, oldp, acc.salt) !== acc.hash){ toast("پرانا پاس ورڈ غلط ہے۔"); return; }
   if(np.length < 4){ toast("نیا پاس ورڈ کم از کم 4 حرف / ہندسے کا ہو۔"); return; }
   if(np !== np2){ toast("دونوں نئے پاس ورڈ ایک جیسے نہیں۔"); return; }
