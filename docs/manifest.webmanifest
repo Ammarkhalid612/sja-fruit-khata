@@ -1,3 +1,3 @@
-{ "name": "SJA فروٹ سبزی کھاتہ", "short_name": "SJA", "start_url": "./", "display": "standalone",
+{ "name": "SJA Fruit POS", "short_name": "SJA POS", "start_url": "./", "display": "standalone",
   "background_color": "#0F5E2A", "theme_color": "#0F5E2A", "dir": "rtl", "lang": "ur",
   "icons": [ { "src": "img/sja-logo.svg", "sizes": "any", "type": "image/svg+xml" } ] }
