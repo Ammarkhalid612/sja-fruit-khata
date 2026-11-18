@@ -12,7 +12,14 @@ const ddmmyyyy = s => s ? s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0
 const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const norm = s => String(s || "").trim().replace(/\s+/g, " ");
 
-const DEFAULT_ITEMS = ["مسمی", "سیب", "کیلا", "انگور", "فروٹر", "خربوزہ", "سٹرابری"];
+const DEFAULT_ITEMS = [
+  "مسمی", "سیب", "کیلا", "انگور", "فروٹر", "خربوزہ", "سٹرابری",
+  "تربوز", "فالسہ", "آم", "آلو بخارا", "خوبانی", "انار", "گرما", "جاپانی پھل",
+  "کینو", "مالٹا", "سنگترہ", "لیموں", "گریپ فروٹ", "امرود", "پپیتا", "چیکو", "ناشپاتی", "آڑو",
+  "لیچی", "جامن", "شہتوت", "بیر", "انجیر", "کھجور", "انناس", "ناریل", "چیری", "کیوی",
+  "املوک", "شریفہ", "سردا", "ڈریگن فروٹ", "ایوکاڈو"
+];
+const ITEMS_VERSION = 2;   // نئے پھل شامل ہوں تو یہ بڑھائیں — پرانی دکانوں میں بھی خود شامل ہو جاتے ہیں
 const DANA = ["", "20", "24", "30", "36", "40", "48", "56", "60", "64", "72", "80", "88", "100", "113", "125"];
 const DEFAULT_SETTINGS = {
   name: "شیخ جاوید شیخ عاطف کمیشن شاپ",
@@ -96,6 +103,17 @@ async function loadAll(){
     for(const it of seed) await st.set("items", it.id, it);
     S.items = seed;
   } else S.items = items;
+  // پرانی لسٹ میں جو پھل نہیں، وہ ایک دفعہ آخر میں شامل کر دو (پرانے نام / بند کیے ہوئے ویسے ہی رہیں)
+  if(n2(S.settings.itemsV) < ITEMS_VERSION){
+    let order = Math.max(0, ...S.items.map(i => n2(i.order)));
+    for(const name of DEFAULT_ITEMS){
+      if(S.items.some(i => i.name === name)) continue;
+      const it = { id:uid("it"), name, order:++order, active:true };
+      await st.set("items", it.id, it); S.items.push(it);
+    }
+    S.settings.itemsV = ITEMS_VERSION;
+    await st.set("settings", "shop", S.settings);
+  }
   S.items.sort((a, b) => n2(a.order) - n2(b.order));
   S.parties.sort((a, b) => a.name.localeCompare(b.name, "ur"));
   $("brandName").textContent = S.settings.name;
