@@ -731,7 +731,15 @@ function wire(){
   });
 }
 
+window.SJA_VERSION = 7;
 boot();
 // website par khule to offline cache chalu (file:// par service worker nahi chalta, wahan zaroorat bhi nahi)
-if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
+  const hadController = !!navigator.serviceWorker.controller;
+  // naya version aaye to page ek dafa khud refresh — purani/nayi files mix na rahein
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if(hadController && !sessionStorage.getItem("sja.swReloaded")){ sessionStorage.setItem("sja.swReloaded", "1"); location.reload(); }
+  });
+  navigator.serviceWorker.register("sw.js", { updateViaCache:"none" }).then(r => r.update()).catch(() => {});
+}
 })();
