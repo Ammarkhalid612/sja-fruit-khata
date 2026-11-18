@@ -781,7 +781,7 @@ function wire(){
   });
 }
 
-window.SJA_VERSION = 9;
+window.SJA_VERSION = 10;
 boot();
 // website par khule to offline cache chalu (file:// par service worker nahi chalta, wahan zaroorat bhi nahi)
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
