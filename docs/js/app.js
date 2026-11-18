@@ -479,13 +479,13 @@ function ledgerData(pid, from, to){
 }
 function ledgerTableHtml(d, forPrint){
   const cls = forPrint ? "ledger" : "tbl";
-  return `<table class="${cls}"><thead><tr><th class="n">بل نمبر</th><th>تاریخ</th><th></th><th>تفصیل</th><th>گاڑی نمبر</th><th class="n">نگ</th><th class="n">ریٹ</th>
-    <th class="n">نام رقم</th><th class="n">جمع رقم</th><th class="n">بقایا</th></tr></thead><tbody>
-    <tr><td class="n">0</td><td></td><td><span class="tag">OPN</span></td><td>سابقہ بیلنس</td><td></td><td></td><td></td><td></td><td></td><td class="n"><b>${fmt(d.opening)}</b></td></tr>
-    ${d.lines.map(l => `<tr><td class="n">${l.no}</td><td class="n">${ddmmyy(l.date)}</td><td><span class="tag ${l.type === "WC" ? "wc" : ""}">${l.type}</span></td>
+  return `<table class="${cls}"><thead><tr><th class="n">بل نمبر</th><th>تاریخ</th><th>تفصیل</th><th>گاڑی نمبر</th><th class="n">نگ</th><th class="n">ریٹ</th>
+    <th class="n">ٹوٹل رقم</th><th class="n">جمع رقم</th><th class="n">بقایا</th></tr></thead><tbody>
+    <tr><td class="n">0</td><td></td><td>سابقہ بیلنس</td><td></td><td></td><td></td><td></td><td></td><td class="n"><b>${fmt(d.opening)}</b></td></tr>
+    ${d.lines.map(l => `<tr><td class="n">${l.no}</td><td class="n">${ddmmyy(l.date)}</td>
       <td>${esc(l.detail)}</td><td>${esc(l.truck)}</td><td class="n">${l.qty ? fmt(l.qty) : ""}</td><td class="n">${l.rate ? fmt(l.rate) : ""}</td>
       <td class="n">${l.dr ? fmt(l.dr) : ""}</td><td class="n">${l.cr ? fmt(l.cr) : ""}</td><td class="n"><b>${fmt(l.bal)}</b></td></tr>`).join("")}
-    </tbody><tfoot><tr><td colspan="5">ٹوٹل</td><td class="n">${fmt(d.qty)}</td><td></td><td class="n">${fmt(d.dr)}</td><td class="n">${fmt(d.cr)}</td><td class="n">${fmt(d.closing)}</td></tr></tfoot></table>`;
+    </tbody><tfoot><tr><td colspan="4">ٹوٹل</td><td class="n">${fmt(d.qty)}</td><td></td><td class="n">${fmt(d.dr)}</td><td class="n">${fmt(d.cr)}</td><td class="n">${fmt(d.closing)}</td></tr></tfoot></table>`;
 }
 function showLedger(){
   const p = partyByName($("lParty").value);
@@ -665,7 +665,7 @@ function printLedger(){
     <div class="title">تفصیل پارٹی (کھاتہ)</div>
     <div class="meta"><span>${from ? "از " + ddmmyyyy(from) : "شروع سے"} ${to ? " تا " + ddmmyyyy(to) : " تا " + ddmmyyyy(today())}</span><span>پرنٹ: <span class="num">${ddmmyyyy(today())}</span></span></div>
     <div class="party">${esc(r.p.name)}</div>${ledgerTableHtml(r.d, true)}
-    <div class="sum"><table><tr><td>سابقہ</td><td class="n">${fmt(r.d.opening)}</td></tr><tr><td>نام رقم (بل)</td><td class="n">${fmt(r.d.dr)}</td></tr>
+    <div class="sum"><table><tr><td>سابقہ</td><td class="n">${fmt(r.d.opening)}</td></tr><tr><td>ٹوٹل رقم (بل)</td><td class="n">${fmt(r.d.dr)}</td></tr>
       <tr><td>جمع رقم (وصولی)</td><td class="n">${fmt(r.d.cr)}</td></tr><tr class="k"><td>کل بقایا</td><td class="n">${fmt(r.d.closing)}</td></tr></table></div></div>`, "A4");
 }
 function printDay(){
@@ -781,7 +781,7 @@ function wire(){
   });
 }
 
-window.SJA_VERSION = 10;
+window.SJA_VERSION = 11;
 boot();
 // website par khule to offline cache chalu (file:// par service worker nahi chalta, wahan zaroorat bhi nahi)
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
