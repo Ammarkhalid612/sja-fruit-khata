@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="SJA Fruit Trade Mark">
+  <defs>
+    <radialGradient id="peel" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#FFB33B"/><stop offset=".7" stop-color="#F7871B"/><stop offset="1" stop-color="#D9620B"/>
+    </radialGradient>
+    <radialGradient id="pulp" cx="50%" cy="50%" r="55%">
+      <stop offset="0" stop-color="#FFE7A6"/><stop offset="1" stop-color="#FFB52E"/>
+    </radialGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5BC236"/><stop offset="1" stop-color="#1E7A23"/>
+    </linearGradient>
+    <radialGradient id="apple" cx="35%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#FF6B5E"/><stop offset=".6" stop-color="#E0201B"/><stop offset="1" stop-color="#9E0E0C"/>
+    </radialGradient>
+    <radialGradient id="grape" cx="35%" cy="30%" r="70%">
+      <stop offset="0" stop-color="#B07ADB"/><stop offset=".7" stop-color="#6A2C9A"/><stop offset="1" stop-color="#43166A"/>
+    </radialGradient>
+  </defs>
+
+  <!-- santray ki qash (orange slice) -->
+  <circle cx="200" cy="208" r="168" fill="url(#peel)"/>
+  <circle cx="200" cy="208" r="150" fill="#FFF3D6"/>
+  <circle cx="200" cy="208" r="140" fill="url(#pulp)"/>
+  <g stroke="#FFF3D6" stroke-width="7" stroke-linecap="round">
+    <line x1="200" y1="208" x2="200" y2="70"/><line x1="200" y1="208" x2="297.6" y2="110.4"/>
+    <line x1="200" y1="208" x2="338" y2="208"/><line x1="200" y1="208" x2="297.6" y2="305.6"/>
+    <line x1="200" y1="208" x2="200" y2="346"/><line x1="200" y1="208" x2="102.4" y2="305.6"/>
+    <line x1="200" y1="208" x2="62" y2="208"/><line x1="200" y1="208" x2="102.4" y2="110.4"/>
+  </g>
+  <circle cx="200" cy="208" r="118" fill="#0F5E2A" opacity=".88"/>
+  <circle cx="200" cy="208" r="118" fill="none" stroke="#FFF3D6" stroke-width="4"/>
+
+  <!-- patte -->
+  <path d="M200 40 C 170 10, 120 14, 104 44 C 140 40, 168 52, 200 40 Z" fill="url(#leaf)"/>
+  <path d="M200 40 C 232 8, 286 16, 300 48 C 262 42, 232 54, 200 40 Z" fill="url(#leaf)"/>
+  <path d="M200 40 C 196 28, 198 18, 206 8" stroke="#5A3A12" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+  <!-- SJA -->
+  <text x="200" y="232" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="104"
+        fill="#FFD23F" stroke="#7A2E00" stroke-width="5" paint-order="stroke" letter-spacing="2">SJA</text>
+  <text x="200" y="272" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="21" fill="#FFF3D6" letter-spacing="3">FRUIT &amp; VEG</text>
+
+  <!-- seb (apple) neeche bayen -->
+  <g transform="translate(64 318)">
+    <path d="M0 6 C -26 -22, -58 4, -48 34 C -40 60, -18 66, 0 56 C 18 66, 40 60, 48 34 C 58 4, 26 -22, 0 6 Z" fill="url(#apple)" stroke="#7A0A08" stroke-width="3"/>
+    <path d="M0 6 C 2 -6, 6 -14, 12 -20" stroke="#5A3A12" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M6 -8 C 18 -22, 34 -20, 40 -12 C 28 -6, 16 -4, 6 -8 Z" fill="url(#leaf)"/>
+    <ellipse cx="-20" cy="18" rx="8" ry="13" fill="#fff" opacity=".35" transform="rotate(-25 -20 18)"/>
+  </g>
+
+  <!-- angoor (grapes) neeche dayen -->
+  <g transform="translate(336 300)">
+    <path d="M0 -26 C 6 -40, 18 -46, 26 -46" stroke="#5A3A12" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M4 -34 C 22 -50, 44 -40, 46 -28 C 30 -26, 16 -28, 4 -34 Z" fill="url(#leaf)"/>
+    <g stroke="#3A1060" stroke-width="2">
+      <circle cx="-18" cy="-12" r="15" fill="url(#grape)"/><circle cx="12" cy="-14" r="15" fill="url(#grape)"/>
+      <circle cx="-30" cy="14" r="15" fill="url(#grape)"/><circle cx="0" cy="12" r="15" fill="url(#grape)"/><circle cx="28" cy="12" r="15" fill="url(#grape)"/>
+      <circle cx="-16" cy="38" r="15" fill="url(#grape)"/><circle cx="14" cy="38" r="15" fill="url(#grape)"/>
+      <circle cx="0" cy="62" r="15" fill="url(#grape)"/>
+    </g>
+  </g>
+
+  <!-- TRADE MARK patti -->
+  <rect x="112" y="330" width="176" height="40" rx="20" fill="#E0201B" stroke="#FFF3D6" stroke-width="4"/>
+  <text x="200" y="358" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="19" fill="#FFF3D6" letter-spacing="2">TRADE MARK</text>
+</svg>

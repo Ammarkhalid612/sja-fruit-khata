@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SJA — فروٹ سبزی کھاتہ</title>
+<meta name="theme-color" content="#0F5E2A">
+<link rel="icon" href="img/sja-logo.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- fonts app ke andar hain — internet ke baghair bhi Urdu sahi dikhe -->
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="loginView" class="login hidden">
+  <form id="loginForm" class="login-card">
+    <img src="img/sja-logo.svg" alt="SJA" class="login-logo">
+    <h1 class="nq">شیخ جاوید شیخ عاطف کمیشن شاپ</h1>
+    <p class="muted">فروٹ سبزی کمیشن ایجنٹس — کامونکے</p>
+    <label class="lbl" for="lgEmail">ای میل</label>
+    <input id="lgEmail" type="email" autocomplete="username" dir="ltr" required>
+    <label class="lbl" for="lgPass">پاس ورڈ</label>
+    <input id="lgPass" type="password" autocomplete="current-password" dir="ltr" required>
+    <button class="btn primary big" type="submit">لاگ ان</button>
+    <p id="lgErr" class="err"></p>
+  </form>
+</section>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="brand">
+      <img src="img/sja-logo.svg" alt="SJA">
+      <div>
+        <div class="nq brand-name" id="brandName">شیخ جاوید شیخ عاطف کمیشن شاپ</div>
+        <div class="brand-sub">فروٹ سبزی کمیشن ایجنٹس — سبزی منڈی جی ٹی روڈ کامونکے</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <span id="syncPill" class="pill"></span>
+      <span id="userPill" class="pill muted"></span>
+      <button id="logoutBtn" class="btn sm ghost hidden" type="button">لاگ آؤٹ</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="dash" class="on">ڈیش بورڈ</button>
+    <button data-view="bill">نیا بل</button>
+    <button data-view="pay">وصولی</button>
+    <button data-view="ledger">کھاتہ</button>
+    <button data-view="bills">بل لسٹ</button>
+    <button data-view="parties">پارٹیاں</button>
+    <button data-view="items">اشیاء</button>
+    <button data-view="reports">رپورٹ</button>
+    <button data-view="settings">سیٹنگ</button>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="view" id="v-dash">
+      <div class="kpis" id="kpis"></div>
+      <div class="grid2">
+        <div class="card"><h2>آج کے بل</h2><div id="dashBills"></div></div>
+        <div class="card"><h2>سب سے زیادہ بقایا</h2><div id="dashDue"></div></div>
+      </div>
+    </section>
+
+    <!-- NEW BILL -->
+    <section class="view hidden" id="v-bill">
+      <div class="card">
+        <div class="row-head">
+          <h2 id="billTitle">نیا بل</h2>
+          <div class="muted" id="billNoHint"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fld grow">
+            <label class="lbl" for="bParty">پارٹی (گاہک)</label>
+            <input id="bParty" list="partyList" placeholder="نام لکھیں یا چنیں…" autocomplete="off">
+            <div class="hint" id="bPartyBal"></div>
+          </div>
+          <div class="fld"><label class="lbl" for="bDate">تاریخ</label><input id="bDate" type="date"></div>
+          <div class="fld"><label class="lbl" for="bTruck">گاڑی نمبر</label><input id="bTruck" placeholder="اختیاری"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tbl entry" id="bRows">
+            <thead><tr>
+              <th style="width:36px">#</th><th>اشیاء</th><th>مارکہ</th><th style="width:96px">دانہ</th>
+              <th style="width:90px">تعداد (نگ)</th><th style="width:100px">ریٹ</th><th style="width:120px">کل رقم</th><th style="width:40px"></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn" id="addRow" type="button">+ نئی لائن</button>
+
+        <div class="bill-foot">
+          <div class="fld grow"><label class="lbl" for="bNote">نوٹ</label><input id="bNote" placeholder="اختیاری"></div>
+          <div class="totals">
+            <div><span>کل نگ</span><b id="bQty">0</b></div>
+            <div class="big"><span>کل رقم</span><b id="bTotal">0</b></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn primary big" id="saveBill" type="button">محفوظ کریں اور پرنٹ</button>
+          <button class="btn big" id="saveBillOnly" type="button">صرف محفوظ</button>
+          <button class="btn ghost" id="clearBill" type="button">نیا / صاف</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAYMENT -->
+    <section class="view hidden" id="v-pay">
+      <div class="card narrow">
+        <h2 id="payTitle">وصولی (جمع رقم)</h2>
+        <div class="form-grid">
+          <div class="fld grow">
+            <label class="lbl" for="pParty">پارٹی</label>
+            <input id="pParty" list="partyList" placeholder="نام لکھیں یا چنیں…" autocomplete="off">
+            <div class="hint" id="pPartyBal"></div>
+          </div>
+          <div class="fld"><label class="lbl" for="pDate">تاریخ</label><input id="pDate" type="date"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fld"><label class="lbl" for="pAmount">رقم</label><input id="pAmount" type="number" min="0" inputmode="numeric" class="num-in"></div>
+          <div class="fld"><label class="lbl" for="pMethod">طریقہ</label>
+            <select id="pMethod"><option>نقد</option><option>بینک</option><option>چیک</option><option>ایزی پیسہ / جاز کیش</option></select></div>
+          <div class="fld grow"><label class="lbl" for="pNote">نوٹ</label><input id="pNote" placeholder="اختیاری"></div>
+        </div>
+        <div class="actions">
+          <button class="btn primary big" id="savePay" type="button">محفوظ کریں اور رسید</button>
+          <button class="btn big" id="savePayOnly" type="button">صرف محفوظ</button>
+        </div>
+      </div>
+      <div class="card"><h2>آج کی وصولیاں</h2><div id="payToday"></div></div>
+    </section>
+
+    <!-- LEDGER -->
+    <section class="view hidden" id="v-ledger">
+      <div class="card">
+        <div class="form-grid">
+          <div class="fld grow"><label class="lbl" for="lParty">پارٹی</label><input id="lParty" list="partyList" placeholder="نام لکھیں یا چنیں…" autocomplete="off"></div>
+          <div class="fld"><label class="lbl" for="lFrom">سے</label><input id="lFrom" type="date"></div>
+          <div class="fld"><label class="lbl" for="lTo">تک</label><input id="lTo" type="date"></div>
+          <div class="fld end"><button class="btn primary" id="lShow" type="button">دکھائیں</button></div>
+          <div class="fld end"><button class="btn" id="lPrint" type="button">پرنٹ</button></div>
+        </div>
+      </div>
+      <div class="card" id="ledgerOut"><p class="muted">پارٹی چنیں اور "دکھائیں" دبائیں۔</p></div>
+    </section>
+
+    <!-- BILL LIST -->
+    <section class="view hidden" id="v-bills">
+      <div class="card">
+        <div class="form-grid">
+          <div class="fld"><label class="lbl" for="blFrom">سے</label><input id="blFrom" type="date"></div>
+          <div class="fld"><label class="lbl" for="blTo">تک</label><input id="blTo" type="date"></div>
+          <div class="fld grow"><label class="lbl" for="blQ">تلاش</label><input id="blQ" placeholder="پارٹی کا نام / بل نمبر"></div>
+        </div>
+      </div>
+      <div class="card" id="billList"></div>
+    </section>
+
+    <!-- PARTIES -->
+    <section class="view hidden" id="v-parties">
+      <div class="card">
+        <h2>نئی پارٹی</h2>
+        <div class="form-grid">
+          <div class="fld grow"><label class="lbl" for="ptName">نام</label><input id="ptName" placeholder="مثلاً احسن شاہ کامونکی"></div>
+          <div class="fld"><label class="lbl" for="ptCity">شہر / علاقہ</label><input id="ptCity"></div>
+          <div class="fld"><label class="lbl" for="ptPhone">فون</label><input id="ptPhone" dir="ltr"></div>
+          <div class="fld"><label class="lbl" for="ptOpen">سابقہ بقایا</label><input id="ptOpen" type="number" class="num-in" value="0"></div>
+          <div class="fld end"><button class="btn primary" id="ptSave" type="button">شامل کریں</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row-head"><h2>پارٹیاں</h2><input id="ptQ" placeholder="تلاش…" class="search"></div>
+        <div id="partyTable"></div>
+      </div>
+    </section>
+
+    <!-- ITEMS -->
+    <section class="view hidden" id="v-items">
+      <div class="card narrow">
+        <h2>اشیاء (فروٹ / سبزی)</h2>
+        <div class="form-grid">
+          <div class="fld grow"><label class="lbl" for="itName">نئی چیز</label><input id="itName" placeholder="مثلاً انار"></div>
+          <div class="fld end"><button class="btn primary" id="itSave" type="button">شامل کریں</button></div>
+        </div>
+        <div id="itemList"></div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view hidden" id="v-reports">
+      <div class="card">
+        <div class="form-grid">
+          <div class="fld"><label class="lbl" for="rFrom">سے</label><input id="rFrom" type="date"></div>
+          <div class="fld"><label class="lbl" for="rTo">تک</label><input id="rTo" type="date"></div>
+          <div class="fld end"><button class="btn primary" id="rShow" type="button">دکھائیں</button></div>
+          <div class="fld end"><button class="btn" id="rPrint" type="button">روزنامچہ پرنٹ</button></div>
+          <div class="fld end"><button class="btn" id="rDuePrint" type="button">بقایا لسٹ پرنٹ</button></div>
+        </div>
+      </div>
+      <div id="reportOut"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view hidden" id="v-settings">
+      <div class="card narrow">
+        <h2>دکان کی معلومات (بل پر چھپتی ہیں)</h2>
+        <label class="lbl" for="stName">دکان کا نام</label><input id="stName">
+        <label class="lbl" for="stSub">ذیلی سطر</label><input id="stSub">
+        <label class="lbl" for="stAddr">پتہ</label><input id="stAddr">
+        <div class="form-grid">
+          <div class="fld grow"><label class="lbl" for="stP1n">نام 1</label><input id="stP1n"></div>
+          <div class="fld grow"><label class="lbl" for="stP1">نمبر 1</label><input id="stP1" dir="ltr"></div>
+        </div>
+        <div class="form-grid">
+          <div class="fld grow"><label class="lbl" for="stP2n">نام 2</label><input id="stP2n"></div>
+          <div class="fld grow"><label class="lbl" for="stP2">نمبر 2</label><input id="stP2" dir="ltr" placeholder="ایک سے زیادہ ہوں تو کامے سے الگ کریں"></div>
+        </div>
+        <label class="lbl" for="stFoot">بل کے نیچے لائن</label><input id="stFoot">
+        <label class="lbl" for="stPaper">بل کا سائز</label>
+        <select id="stPaper"><option value="A5">A5 (آدھا صفحہ)</option><option value="A4">A4 (پورا صفحہ)</option></select>
+        <div class="actions"><button class="btn primary" id="stSave" type="button">محفوظ کریں</button></div>
+      </div>
+      <div class="card narrow">
+        <h2>بیک اپ</h2>
+        <p class="muted">سارا ڈیٹا ایک فائل میں محفوظ کریں — ہر ہفتے کم از کم ایک بار۔</p>
+        <div class="actions">
+          <button class="btn" id="bkDown" type="button">بیک اپ ڈاؤن لوڈ</button>
+          <label class="btn" id="bkUpLbl">بیک اپ واپس لائیں<input id="bkUp" type="file" accept="application/json" hidden></label>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<datalist id="partyList"></datalist>
+<datalist id="markList"></datalist>
+<div id="toast" class="toast"></div>
+
+<!-- tasdeeq / sawal -->
+<div id="dlg" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dlgMsg">
+  <div class="dlg-box">
+    <p id="dlgMsg"></p>
+    <input id="dlgInput" class="hidden">
+    <div class="actions"><button class="btn primary" id="dlgOk" type="button">ٹھیک ہے</button><button class="btn" id="dlgCancel" type="button">واپس</button></div>
+  </div>
+</div>
+
+<!-- print preview -->
+<div id="preview" class="overlay hidden" role="dialog" aria-modal="true" aria-label="پرنٹ پیش نظارہ">
+  <div class="pv-bar">
+    <b>پرنٹ پیش نظارہ</b><span class="pill" id="pvPaper">A5</span>
+    <span class="grow"></span>
+    <button class="btn primary" id="pvPrint" type="button">پرنٹ کریں</button>
+    <button class="btn" id="pvClose" type="button">بند کریں</button>
+  </div>
+  <div class="pv-scroll"><div class="pv-paper" id="pvBody"></div></div>
+</div>
+<div id="print" class="print-area"></div>
+
+<script src="js/vendor/firebase-app-compat.js"></script>
+<script src="js/vendor/firebase-auth-compat.js"></script>
+<script src="js/vendor/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
