@@ -63,10 +63,11 @@ function boot(){
     const db = firebase.firestore();
     db.enablePersistence({ synchronizeTabs:true }).catch(() => {});
     S.store = new SjaStore.FirebaseStore(db);
+    $("lgUserLbl").textContent = "ای میل"; $("lgEmail").type = "email"; $("lgRemember").parentElement.classList.add("hidden");
     firebase.auth().onAuthStateChanged(u => {
       S.user = u;
-      if(u){ $("loginView").classList.add("hidden"); $("app").classList.remove("hidden"); $("userPill").textContent = u.email; $("logoutBtn").classList.remove("hidden"); start(); }
-      else { $("app").classList.add("hidden"); $("loginView").classList.remove("hidden"); }
+      if(u) enterApp(u.email);
+      else showLogin(false);
     });
     $("loginForm").addEventListener("submit", async e => {
       e.preventDefault(); $("lgErr").textContent = "";
@@ -76,12 +77,97 @@ function boot(){
     $("logoutBtn").addEventListener("click", () => firebase.auth().signOut());
   } else {
     S.store = new SjaStore.LocalStore();
-    $("app").classList.remove("hidden");
-    $("userPill").textContent = "صرف اس کمپیوٹر پر";
-    start();
+    localAuth();
   }
-  const net = () => { const p = $("syncPill"); if(navigator.onLine){ p.textContent = "آن لائن"; p.classList.remove("warn"); } else { p.textContent = "آف لائن — بعد میں سنک ہوگا"; p.classList.add("warn"); } };
+  // sirf internet na ho to chhoti si warning — warna kuch nahi
+  const net = () => $("syncPill").classList.toggle("hidden", navigator.onLine);
   window.addEventListener("online", net); window.addEventListener("offline", net); net();
+  $("lgEye").addEventListener("click", () => { const i = $("lgPass"); i.type = i.type === "password" ? "text" : "password"; });
+}
+
+/* ------------- local login (Firebase na ho to): is device par app ka taala ------------- */
+const ACC_KEY = "sja.account", SES_KEY = "sja.session";
+function getJSON(store, k){ try { return JSON.parse(store.getItem(k) || "null"); } catch(e){ return null; } }
+function putJSON(store, k, v){ try { v == null ? store.removeItem(k) : store.setItem(k, JSON.stringify(v)); } catch(e){} }
+async function hashPass(user, pass, salt){
+  const text = salt + "|" + user.toLowerCase() + "|" + pass;
+  if(window.crypto && crypto.subtle && window.isSecureContext !== false){
+    try {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch(e){}
+  }
+  // crypto na mile to saada hash (sirf is device ka taala hai)
+  let h1 = 0x811c9dc5, h2 = 0x1000193;
+  for(let i = 0; i < text.length; i++){ h1 = Math.imul(h1 ^ text.charCodeAt(i), 16777619) >>> 0; h2 = Math.imul(h2 + text.charCodeAt(i), 2654435761) >>> 0; }
+  return "f" + h1.toString(16) + h2.toString(16);
+}
+function showLogin(setup){
+  $("app").classList.add("hidden"); $("loginView").classList.remove("hidden");
+  $("lgTitle").textContent = setup ? "نیا اکاؤنٹ بنائیں" : "لاگ ان کریں";
+  $("lgNote").classList.toggle("hidden", !setup);
+  $("lgNameWrap").classList.toggle("hidden", !setup);
+  $("lgPass2Wrap").classList.toggle("hidden", !setup);
+  $("lgBtn").textContent = setup ? "اکاؤنٹ بنائیں اور شروع کریں" : "لاگ ان";
+  $("lgPass").autocomplete = setup ? "new-password" : "current-password";
+  $("lgErr").textContent = ""; $("lgPass").value = ""; $("lgPass2").value = "";
+  setTimeout(() => (setup ? $("lgName") : ($("lgEmail").value ? $("lgPass") : $("lgEmail"))).focus(), 50);
+}
+function enterApp(name){
+  $("loginView").classList.add("hidden"); $("app").classList.remove("hidden");
+  $("userPill").textContent = name; $("userPill").classList.remove("hidden"); $("logoutBtn").classList.remove("hidden");
+  start();
+}
+function localAuth(){
+  const acc = getJSON(localStorage, ACC_KEY);
+  const ses = getJSON(sessionStorage, SES_KEY) || getJSON(localStorage, SES_KEY);
+  if(acc && ses && ses.user === acc.user && ses.k === acc.hash.slice(0, 16)){ S.user = { email:acc.user, name:acc.name }; enterApp(acc.name || acc.user); }
+  else { if(acc) $("lgEmail").value = acc.user; showLogin(!acc); }
+
+  $("loginForm").addEventListener("submit", async e => {
+    e.preventDefault(); $("lgErr").textContent = "";
+    const acc = getJSON(localStorage, ACC_KEY);
+    const user = $("lgEmail").value.trim(), pass = $("lgPass").value;
+    if(!user || !pass){ $("lgErr").textContent = "یوزر نیم اور پاس ورڈ دونوں لکھیں۔"; return; }
+    if(!acc){   // pehli dafa — account banao
+      if(pass.length < 4){ $("lgErr").textContent = "پاس ورڈ کم از کم 4 حرف / ہندسے کا ہو۔"; return; }
+      if(pass !== $("lgPass2").value){ $("lgErr").textContent = "دونوں پاس ورڈ ایک جیسے نہیں۔"; return; }
+      const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const nacc = { name:norm($("lgName").value) || user, user, salt, hash: await hashPass(user, pass, salt), at:Date.now() };
+      putJSON(localStorage, ACC_KEY, nacc);
+      return login(nacc);
+    }
+    if(user.toLowerCase() !== acc.user.toLowerCase() || await hashPass(acc.user, pass, acc.salt) !== acc.hash){
+      $("lgErr").textContent = "یوزر نیم یا پاس ورڈ غلط ہے۔"; $("lgPass").select(); return;
+    }
+    login(acc);
+  });
+  function login(acc){
+    const ses = { user:acc.user, k:acc.hash.slice(0, 16), at:Date.now() };
+    putJSON(sessionStorage, SES_KEY, ses);
+    putJSON(localStorage, SES_KEY, $("lgRemember").checked ? ses : null);
+    S.user = { email:acc.user, name:acc.name }; enterApp(acc.name || acc.user);
+  }
+  $("logoutBtn").addEventListener("click", () => {
+    putJSON(sessionStorage, SES_KEY, null); putJSON(localStorage, SES_KEY, null);
+    S.user = null; showLogin(false);
+  });
+}
+
+/* settings: password badlo (local login) */
+async function changePassword(){
+  const acc = getJSON(localStorage, ACC_KEY); if(!acc){ toast("اکاؤنٹ نہیں ملا۔"); return; }
+  const oldp = $("cpOld").value, np = $("cpNew").value, np2 = $("cpNew2").value;
+  if(await hashPass(acc.user, oldp, acc.salt) !== acc.hash){ toast("پرانا پاس ورڈ غلط ہے۔"); return; }
+  if(np.length < 4){ toast("نیا پاس ورڈ کم از کم 4 حرف / ہندسے کا ہو۔"); return; }
+  if(np !== np2){ toast("دونوں نئے پاس ورڈ ایک جیسے نہیں۔"); return; }
+  acc.salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  acc.hash = await hashPass(acc.user, np, acc.salt);
+  putJSON(localStorage, ACC_KEY, acc);
+  const ses = { user:acc.user, k:acc.hash.slice(0, 16), at:Date.now() };
+  putJSON(sessionStorage, SES_KEY, ses); if(getJSON(localStorage, SES_KEY)) putJSON(localStorage, SES_KEY, ses);
+  ["cpOld", "cpNew", "cpNew2"].forEach(i => $(i).value = "");
+  toast("پاس ورڈ بدل گیا");
 }
 
 let started = false;
@@ -623,6 +709,7 @@ function wire(){
   $("rPrint").addEventListener("click", printDay);
   $("rDuePrint").addEventListener("click", printDue);
   $("stSave").addEventListener("click", saveSettings);
+  $("cpSave").addEventListener("click", changePassword);
   $("bkDown").addEventListener("click", backupDown);
   $("bkUp").addEventListener("change", e => backupUp(e.target.files[0]));
 

@@ -45,6 +45,13 @@ input:focus, select:focus{outline:2px solid var(--green-2); outline-offset:0; bo
 .login-card h1{font-size:19px; margin:6px 0 0; line-height:2.2; color:var(--green)}
 .login-card .btn{width:100%; justify-content:center; margin-top:16px}
 .err{color:var(--red); min-height:1.5em; font-size:14px}
+.login-h{font-size:18px; margin:14px 0 4px; color:var(--green)}
+.login-note{font-size:13px; line-height:1.8; margin:0 0 4px}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:42px}
+.eye{position:absolute; right:6px; top:50%; transform:translateY(-50%); border:0; background:none; cursor:pointer; font-size:16px; padding:4px; color:var(--ink-2)}
+.remember{display:flex; align-items:center; gap:8px; justify-content:flex-start; margin-top:12px; font-size:14px; color:var(--ink-2); cursor:pointer}
+.remember input{width:auto}
 
 /* header */
 .top{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 16px; color:#fff;

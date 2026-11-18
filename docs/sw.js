@@ -1,6 +1,6 @@
 /* SJA offline cache — app ek dafa khul jaye to phir baghair internet bhi khule.
    Pehle cache se dikhao, peeche se naya version utha kar cache taaza karo. */
-const CACHE = "sja-v5";
+const CACHE = "sja-v6";
 const CORE = ["./", "index.html", "css/app.css", "css/fonts.css", "js/app.js", "js/store.js", "js/firebase-config.js",
   "img/sja-logo.svg", "manifest.webmanifest"];
 

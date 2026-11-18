@@ -24,12 +24,26 @@
     <img src="img/sja-logo.svg" alt="SJA" class="login-logo">
     <h1 class="nq">شیخ جاوید شیخ عاطف کمیشن شاپ</h1>
     <p class="muted">فروٹ سبزی کمیشن ایجنٹس — کامونکے</p>
-    <label class="lbl" for="lgEmail">ای میل</label>
-    <input id="lgEmail" type="email" autocomplete="username" dir="ltr" required>
+    <h2 class="login-h" id="lgTitle">لاگ ان کریں</h2>
+    <p class="muted login-note hidden" id="lgNote">پہلی دفعہ: اپنا یوزر نیم اور پاس ورڈ بنائیں۔ یہی ہر دفعہ ایپ کھولنے کے لیے چاہیے ہوگا — اسے یاد رکھیں۔</p>
+    <div id="lgNameWrap" class="hidden">
+      <label class="lbl" for="lgName">آپ کا نام</label>
+      <input id="lgName" autocomplete="name" placeholder="مثلاً شیخ عاطف">
+    </div>
+    <label class="lbl" for="lgEmail" id="lgUserLbl">یوزر نیم</label>
+    <input id="lgEmail" autocomplete="username" dir="ltr" required>
     <label class="lbl" for="lgPass">پاس ورڈ</label>
-    <input id="lgPass" type="password" autocomplete="current-password" dir="ltr" required>
-    <button class="btn primary big" type="submit">لاگ ان</button>
-    <p id="lgErr" class="err"></p>
+    <div class="pass-wrap">
+      <input id="lgPass" type="password" autocomplete="current-password" dir="ltr" required>
+      <button type="button" class="eye" id="lgEye" aria-label="پاس ورڈ دکھائیں">👁</button>
+    </div>
+    <div id="lgPass2Wrap" class="hidden">
+      <label class="lbl" for="lgPass2">پاس ورڈ دوبارہ</label>
+      <input id="lgPass2" type="password" autocomplete="new-password" dir="ltr">
+    </div>
+    <label class="remember"><input type="checkbox" id="lgRemember" checked> مجھے یاد رکھیں</label>
+    <button class="btn primary big" type="submit" id="lgBtn">لاگ ان</button>
+    <p id="lgErr" class="err" role="alert"></p>
   </form>
 </section>
 
@@ -45,9 +59,9 @@
     </div>
     <div class="top-right">
       <button id="themeBtn" class="theme-btn" type="button" title="لائٹ / ڈارک"></button>
-      <span id="syncPill" class="pill"></span>
-      <span id="userPill" class="pill muted"></span>
-      <button id="logoutBtn" class="btn sm ghost hidden" type="button">لاگ آؤٹ</button>
+      <span id="syncPill" class="pill warn hidden">آف لائن</span>
+      <span id="userPill" class="pill muted hidden"></span>
+      <button id="logoutBtn" class="theme-btn hidden" type="button">لاگ آؤٹ</button>
     </div>
   </header>
 
@@ -231,6 +245,15 @@
         <label class="lbl" for="stPaper">بل کا سائز</label>
         <select id="stPaper"><option value="A5">A5 (آدھا صفحہ)</option><option value="A4">A4 (پورا صفحہ)</option></select>
         <div class="actions"><button class="btn primary" id="stSave" type="button">محفوظ کریں</button></div>
+      </div>
+      <div class="card narrow">
+        <h2>پاس ورڈ بدلیں</h2>
+        <div class="form-grid">
+          <div class="fld"><label class="lbl" for="cpOld">پرانا پاس ورڈ</label><input id="cpOld" type="password" dir="ltr" autocomplete="current-password"></div>
+          <div class="fld"><label class="lbl" for="cpNew">نیا پاس ورڈ</label><input id="cpNew" type="password" dir="ltr" autocomplete="new-password"></div>
+          <div class="fld"><label class="lbl" for="cpNew2">نیا پاس ورڈ دوبارہ</label><input id="cpNew2" type="password" dir="ltr" autocomplete="new-password"></div>
+        </div>
+        <div class="actions"><button class="btn primary" id="cpSave" type="button">پاس ورڈ بدلیں</button></div>
       </div>
       <div class="card narrow">
         <h2>بیک اپ</h2>
